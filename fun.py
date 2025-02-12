@@ -1,123 +1,157 @@
-# Ultroid - UserBot
-# Copyright (C) 2020 TeamUltroid
-#
-# This file is a part of < https://github.com/TeamUltroid/Ultroid/ >
-# PLease read the GNU Affero General Public License in
-# <https://www.github.com/TeamUltroid/Ultroid/blob/main/LICENSE/>.
+from telethon import events
+import random, re
+from uniborg.util import admin_cmd
 
-"""
-✘ Commands Available
+METOOSTR = [
+    "`Me too thanks`",
+    "`Haha yes, me too`",
+    "`Same lol`",
+    "`Me irl`",
+    "`Same here`",
+    "`Haha yes`",
+    "`Same pinch bsdk`",
+]
+RUNSREACTS = [
+    "`Runs to Thanos`",
+    "`Runs far, far away from earth`",
+    "`Running faster than usian bolt coz I'mma Bot`",
+    "`Runs to Marie`",
+    "`This Group is too cancerous to deal with.`",
+    "`Cya bois`",
+    "`I am a mad person. Plox Ban me.`",
+    "`I go away`",
+    "`I am just walking off, coz me is too fat.`",
+    "`I Fugged off!`",
+]
+RAPE_STRINGS = [
+     "`Rape Done Drink The Cum`",
+     "`The user has been successfully raped`",
+     "`Dekho Bhaiyya esa hai! Izzat bachailo apni warna Gaand maar lenge tumhari`",
+     "`Relax your Rear, ders nothing to fear,The Rape train is finally here`",
+     "`Rape coming... Raped! haha 😆`",
+     "`Lodu Andha hai kya Yaha tera rape ho raha hai aur tu abhi tak yahi gaand mara raha hai lulz`",
+] 
+ABUSE_STRINGS = [
+       "`Madharchod`",
+	   "`Gaandu`",
+	   "`Chutiya he rah jaye ga`",
+	   "`Ja be Gaandu`",
+	   "`Ma ka Bhodsa madharchod`",
+	   "`mml`",
+	   "`You MotherFukcer`",
+	   "`Muh Me Lega Bhosdike ?`"
+]
+GEY_STRINGS = [
+     "`you gey bsdk`",
+     "`you gey`",
+     "`you gey in the house`",
+     "`you chakka`",
+     "`you gey gey gey gey gey gey gey gey`",
+     "`you gey go away`",
+]
+PRO_STRINGS = [
+     "`This gey is pro as phack.`",
+     "`Pros here -_- Time to Leave`",
+]
+INSULT_STRINGS = [ 
+    "`Owww ... Such a stupid idiot.`",
+    "`Don't drink and type.`",
+    "`Command not found. Just like your brain.`",
+    "`Bot rule 544 section 9 prevents me from replying to stupid humans like you.`",
+    "`Sorry, we do not sell brains.`",
+    "`Believe me you are not normal.`",
+    "`I bet your brain feels as good as new, seeing that you never use it.`",
+    "`If I wanted to kill myself I'd climb your ego and jump to your IQ.`",
+    "`You didn't evolve from apes, they evolved from you.`",
+    "`What language are you speaking? Cause it sounds like bullshit.`",
+    "`You are proof that evolution CAN go in reverse.`",
+    "`I would ask you how old you are but I know you can't count that high.`",
+    "`As an outsider, what do you think of the human race?`",
+    "`Ordinarily people live and learn. You just live.`",
+    "`Keep talking, someday you'll say something intelligent!.......(I doubt it though)`",
+    "`Everyone has the right to be stupid but you are abusing the privilege.`",
+    "`I'm sorry I hurt your feelings when I called you stupid. I thought you already knew that.`",
+    "`You should try tasting cyanide.`",
+    "`You should try sleeping forever.`",
+    "`Pick up a gun and shoot yourself.`",
+    "`Try bathing with Hydrochloric Acid instead of water.`",
+    "`Go Green! Stop inhaling Oxygen.`",
+    "`God was searching for you. You should leave to meet him.`",
+    "`You should Volunteer for target in an firing range.`",
+    "`Try playing catch and throw with RDX its fun.`",
+    "`People like you are the reason we have middle fingers.`",
+    "`When your mom dropped you off at the school, she got a ticket for littering.`",
+    "`You’re so ugly that when you cry, the tears roll down the back of your head…just to avoid your face.`",
+    "`If you’re talking behind my back then you’re in a perfect position to kiss my a**!.`",
+]
+# ===========================================
+                          
 
-• `{i}joke`
-    To get joke.
-
-• `{i}url <long url>`
-    To get a shorten link of long link.
-
-• `{i}phlogo <first_name> <last_name>`
-    Make a phub based logo.
-
-• `{i}decide`
-    Decide something.
-
-• `{i}xo`
-    Opens tic tac game only where using inline mode is allowed.
-
-• `{i}wordi`
-    Opens word game only where using inline mode is allowed.
-
-• `{i}gps <name of place>`
-    Shows the desired place in the map.
-"""
-
-import random, os
-
-import requests
-from bs4 import BeautifulSoup as bs
-from pyjokes import get_joke
-from telethon.errors import ChatSendMediaForbiddenError
-from phlogo import generate
-
-from . import ultroid_cmd, get_string, HNDLR, async_searcher
-
-
-@ultroid_cmd(pattern="joke$")
-async def _(ult):
-    await ult.eor(get_joke())
-
-
-@ultroid_cmd(pattern="url ?(.*)")
+@borg.on(admin_cmd(pattern="run ?(.*)"))
 async def _(event):
+    if event.fwd_from:
+         return
+    bro = random.randint(0, len(RUNSREACTS) - 1)    
     input_str = event.pattern_match.group(1)
-    if not input_str:
-        await event.eor("`Give some url`")
-        return
-    sample_url = "https://da.gd/s?url={}".format(input_str)
-    response_api = requests.get(sample_url).text
-    if response_api:
-        await event.eor(
-            "**Shortened url**==> {}\n**Given url**==> {}.".format(
-                response_api, input_str
-            ),
-        )
-    else:
-        await event.eor("`Something went wrong. Please try again Later.`")
+    reply_text = RUNSREACTS[bro]
+    await event.edit(reply_text)
 
 
-@ultroid_cmd(pattern="decide$")
+@borg.on(admin_cmd(pattern="metoo ?(.*)"))
 async def _(event):
-    hm = await event.eor("`Deciding`")
-    r = await async_searcher("https://yesno.wtf/api", re_json=True)
-    try:
-        await event.reply(r["answer"], file=r["image"])
-        await hm.delete()
-    except ChatSendMediaForbiddenError:
-        await event.eor(r["answer"])
+    if event.fwd_from:
+         return
+    bro = random.randint(0, len(METOOSTR) - 1)    
+    input_str = event.pattern_match.group(1)
+    reply_text = METOOSTR[bro]
+    await event.edit(reply_text)
 
 
-@ultroid_cmd(pattern="xo$")
-async def xo(ult):
-    xox = await ult.client.inline_query("xobot", "play")
-    await xox[random.randrange(0, len(xox) - 1)].click(
-        ult.chat_id, reply_to=ult.reply_to_msg_id, silent=True, hide_via=True
-    )
-    await ult.delete()
-
-
-@ultroid_cmd(pattern="phlogo( (.*)|$)")
-async def make_logog(ult):
-    msg = await ult.eor(get_string("com_1"))
-    match = ult.pattern_match.group(1).strip()
-    reply = await ult.get_reply_message()
-    if not match and (reply and reply.text):
-        match = reply.text
-    else:
-        return await msg.edit(f"`Provide a name to make logo...`")
-    first, last = "", ""
-    if len(match.split()) >= 2:
-        first, last = match.split()[:2]
-    else:
-        last = match
-    logo = generate(first, last)
-    name = f"{ult.id}.png"
-    logo.save(name)
-    await ult.client.send_message(
-        ult.chat_id, file=name, reply_to=ult.reply_to_msg_id or ult.id
-    )
-    os.remove(name)
-    await msg.delete()
-
-
-Bot = {"gps":"openmap_bot", "wordi":"wordibot"}
-
-@ultroid_cmd(pattern="(gps|wordi) (.*)")
-async def _map(ult):
-    cmd = ult.pattern_match.group(1)
-    get = ult.pattern_match.group(2)
-    if not get:
-        return await ult.eor(f"Use this command as `{HNDLR}{cmd} <query>`")
-    quer = await ult.client.inline_query(Bot[cmd], get)
-    await quer[0].click(
-        ult.chat_id, reply_to=ult.reply_to_msg_id, silent=True, hide_via=True
-    )
-    await ult.delete()
+@borg.on(admin_cmd(pattern="rapee ?(.*)"))
+async def _(event):
+    if event.fwd_from:
+         return
+    bro = random.randint(0, len(RAPE_STRINGS) - 1)    
+    input_str = event.pattern_match.group(1)
+    reply_text = RAPE_STRINGS[bro]
+    await event.edit(reply_text)
+			  
+                          
+@borg.on(admin_cmd(pattern="insultt ?(.*)"))
+async def _(event):
+    if event.fwd_from:
+         return
+    bro = random.randint(0, len(INSULT_STRINGS) - 1)    
+    input_str = event.pattern_match.group(1)
+    reply_text = INSULT_STRINGS[bro]
+    await event.edit(reply_text)
+			  
+			  
+@borg.on(admin_cmd(pattern="proo ?(.*)"))
+async def _(event):
+    if event.fwd_from:
+         return
+    bro = random.randint(0, len(PRO_STRINGS) - 1)    
+    input_str = event.pattern_match.group(1)
+    reply_text = PRO_STRINGS[bro]
+    await event.edit(reply_text)
+			  
+			  
+@borg.on(admin_cmd(pattern="abusee ?(.*)"))
+async def _(event):
+    if event.fwd_from:
+         return
+    bro = random.randint(0, len(ABUSE_STRINGS) - 1)    
+    input_str = event.pattern_match.group(1)
+    reply_text = ABUSE_STRINGS[bro]
+    await event.edit(reply_text)
+			  
+			  
+@borg.on(admin_cmd(pattern="geyy ?(.*)"))
+async def _(event):
+    if event.fwd_from:
+         return
+    bro = random.randint(0, len(GEY_STRINGS) - 1)    
+    input_str = event.pattern_match.group(1)
+    reply_text = GEY_STRINGS[bro]
+    await event.edit(reply_text) 
