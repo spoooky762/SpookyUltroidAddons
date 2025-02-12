@@ -1,32 +1,23 @@
-# Ultroid Userbot
-#
-# This file is a part of < https://github.com/TeamUltroid/Ultroid/ >
-# PLease read the GNU Affero General Public License in
-# <https://www.github.com/TeamUltroid/Ultroid/blob/main/LICENSE/>.
-
-"""
-
-✘ Commands Available -
-
-• `{i}wiki <search query>``
-    Wikipedia search from telegram.
-
-"""
-
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+"""WikiPedia.ORG
+Syntax: .wikipedia Query"""
+from telethon import events
 import wikipedia
+from uniborg.util import admin_cmd
 
-from . import *
 
-
-@ultroid_cmd(pattern="wiki ?(.*)")
-async def wiki(e):
-    srch = e.pattern_match.group(1)
-    if not srch:
-        return await e.eor("`Give some text to search on wikipedia !`")
-    msg = await e.eor(f"`Searching {srch} on wikipedia..`")
-    try:
-        mk = wikipedia.summary(srch)
-        te = f"**Search Query :** {srch}\n\n**Results :** {mk}"
-        await msg.edit(te)
-    except Exception as err:
-        await msg.edit(f"**ERROR** : {str(err)}")
+@borg.on(admin_cmd(pattern="wikipedia (.*)"))
+async def _(event):
+    if event.fwd_from:
+        return
+    await event.edit("Processing ...")
+    input_str = event.pattern_match.group(1)
+    result = ""
+    results = wikipedia.search(input_str)
+    for s in results:
+        page = wikipedia.page(s)
+        url = page.url
+        result += f"> [{s}]({url}) \n"
+    await event.edit("WikiPedia **Search**: {} \n\n **Result**: \n\n{}".format(input_str, result))
