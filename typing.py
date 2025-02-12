@@ -1,39 +1,40 @@
-# (c) Shrimadhav U.K
-# aka Spechide
-#
-# Ported for Ultroid - UserBot
-#
-# This file is a part of < https://github.com/TeamUltroid/Ultroid/ >
-# PLease read the GNU Affero General Public License in
-# <https://www.github.com/TeamUltroid/Ultroid/blob/main/LICENSE/>.
-
-"""
-✘ Commands Available -
-
-• `{i}type <msg>`
-    Edits the Message and shows like someone is typing.
-"""
-
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+# (c) Shrimadhav U K
 import asyncio
+from uniborg.util import admin_cmd
 
-from . import *
 
-
-@ultroid_cmd(pattern="type ?(.*)", fullsudo=True)
+@borg.on(admin_cmd(pattern="typewriter (.*)"))
 async def _(event):
+    if event.fwd_from:
+        return
+    # https://t.me/AnotherGroup/176551
     input_str = event.pattern_match.group(1)
-    if not input_str:
-        return await event.eor("Give me something to type !")
-    shiiinabot = "\u2060" * 602
-    okla = await event.eor(shiiinabot)
+    shiiinabot = "\u2060"
+    for i in range(601):
+        shiiinabot += "\u2060"
+    try:
+        await event.edit(shiiinabot)
+    except Exception as e:
+        logger.warn(str(e))
     typing_symbol = "|"
+    DELAY_BETWEEN_EDITS = 0.3
     previous_text = ""
-    await okla.edit(typing_symbol)
-    await asyncio.sleep(0.4)
+    await event.edit(typing_symbol)
+    await asyncio.sleep(DELAY_BETWEEN_EDITS)
     for character in input_str:
         previous_text = previous_text + "" + character
         typing_text = previous_text + "" + typing_symbol
-        await okla.edit(typing_text)
-        await asyncio.sleep(0.4)
-        await okla.edit(previous_text)
-        await asyncio.sleep(0.4)
+        try:
+            await event.edit(typing_text)
+        except Exception as e:
+            logger.warn(str(e))
+            pass
+        await asyncio.sleep(DELAY_BETWEEN_EDITS)
+        try:
+            await event.edit(previous_text)
+        except Exception as e:
+            logger.warn(str(e))
+            pass
+        await asyncio.sleep(DELAY_BETWEEN_EDITS)

@@ -1,48 +1,122 @@
-#
-# Ultroid - UserBot
-#
-# This file is a part of < https://github.com/TeamUltroid/Ultroid/ >
-# PLease read the GNU Affero General Public License in
-# <https://www.github.com/TeamUltroid/Ultroid/blob/main/LICENSE/>.
-#
+"""Optical Character Recognition by OCR.Space
+Syntax: .ocr <LangCode>
+Available Languages: .ocrlanguages"""
+from telethon import events
+import json
+import os
+import requests
+from uniborg.util import admin_cmd
 
 
-"""
-✘ Commands Available -
+def ocr_space_file(filename, overlay=False, api_key=Config.OCR_SPACE_API_KEY, language='eng'):
+    """ OCR.space API request with local file.
+        Python3.5 - not tested on 2.7
+    :param filename: Your file path & name.
+    :param overlay: Is OCR.space overlay required in your response.
+                    Defaults to False.
+    :param api_key: OCR.space API key.
+                    Defaults to 'helloworld'.
+    :param language: Language code to be used in OCR.
+                    List of available language codes can be found on https://ocr.space/OCRAPI
+                    Defaults to 'en'.
+    :return: Result in JSON format.
+    """
 
-• `{i}ocr <language code><reply to a photo>`
-    text recognition service.
-"""
+    payload = {'isOverlayRequired': overlay,
+               'apikey': api_key,
+               'language': language,
+               }
+    with open(filename, 'rb') as f:
+        r = requests.post('https://api.ocr.space/parse/image',
+                          files={filename: f},
+                          data=payload,
+                          )
+    return r.json()
 
 
-from telegraph import upload_file as uf
+def ocr_space_url(url, overlay=False, api_key=Config.OCR_SPACE_API_KEY, language='eng'):
+    """ OCR.space API request with remote file.
+        Python3.5 - not tested on 2.7
+    :param url: Image url.
+    :param overlay: Is OCR.space overlay required in your response.
+                    Defaults to False.
+    :param api_key: OCR.space API key.
+                    Defaults to 'helloworld'.
+    :param language: Language code to be used in OCR.
+                    List of available language codes can be found on https://ocr.space/OCRAPI
+                    Defaults to 'en'.
+    :return: Result in JSON format.
+    """
 
-from . import *
+    payload = {'url': url,
+               'isOverlayRequired': overlay,
+               'apikey': api_key,
+               'language': language,
+               }
+    r = requests.post('https://api.ocr.space/parse/image',
+                      data=payload,
+                      )
+    return r.json()
 
-TE = f"API not found, Please get it from ocr.space and set\n\ncommand `{HNDLR}setdb OCR_API your-api-key`"
+
+def progress(current, total):
+    logger.info("Downloaded {} of {}\nCompleted {}".format(
+        current, total, (current / total) * 100))
 
 
-@ultroid_cmd(pattern="ocr ?(.*)")
-async def ocrify(ult):
-    if not ult.is_reply:
-        return await ult.eor("`Reply to Photo...`")
-    msg = await ult.eor("`Processing..`")
-    OAPI = udB.get_key("OCR_API")
-    if not OAPI:
-        return await msg.edit(TE)
-    pat = ult.pattern_match.group(1)
-    repm = await ult.get_reply_message()
-    if not (repm.media and repm.media.photo):
-        return await msg.edit("`Not a Photo..`")
-    dl = await repm.download_media()
-    atr = ""
-    if pat:
-        atr = f"&language={pat}"
-    tt = uf(dl)
-    li = "https://telegra.ph" + tt[0]
-    gr = await async_searcher(
-        f"https://api.ocr.space/parse/imageurl?apikey={OAPI}{atr}&url={li}",
-        re_json=True,
+@borg.on(admin_cmd(pattern="ocrlanguages"))
+async def get_ocr_languages(event):
+    if event.fwd_from:
+        return
+    languages = {}
+    languages["English"] = "eng"
+    languages["Arabic"] = "ara"
+    languages["Bulgarian"] = "bul"
+    languages["Chinese (Simplified)"] = "chs"
+    languages["Chinese (Traditional)"] = "cht"
+    languages["Croatian"] = "hrv"
+    languages["Czech"] = "cze"
+    languages["Danish"] = "dan"
+    languages["Dutch"] = "dut"
+    languages["Finnish"] = "fin"
+    languages["French"] = "fre"
+    languages["German"] = "ger"
+    languages["Greek"] = "gre"
+    languages["Hungarian"] = "hun"
+    languages["Korean"] = "kor"
+    languages["Italian"] = "ita"
+    languages["Japanese"] = "jpn"
+    languages["Polish"] = "pol"
+    languages["Portuguese"] = "por"
+    languages["Russian"] = "rus"
+    languages["Slovenian"] = "slv"
+    languages["Spanish"] = "spa"
+    languages["Swedish"] = "swe"
+    languages["Turkish"] = "tur"
+    a = json.dumps(languages, sort_keys=True, indent=4)
+    await event.edit(str(a))
+
+
+@borg.on(admin_cmd(pattern="ocr (.*)"))
+async def parse_ocr_space_api(event):
+    if event.fwd_from:
+        return
+    await event.edit("Processing 🙄🙇‍♂️🙇‍♂️🙇‍♀️")
+    if not os.path.isdir(Config.TMP_DOWNLOAD_DIRECTORY):
+        os.makedirs(Config.TMP_DOWNLOAD_DIRECTORY)
+    lang_code = event.pattern_match.group(1)
+    downloaded_file_name = await borg.download_media(
+        await event.get_reply_message(),
+        Config.TMP_DOWNLOAD_DIRECTORY,
+        progress_callback=progress
     )
-    trt = gr["ParsedResults"][0]["ParsedText"]
-    await msg.edit(f"**🎉 OCR PORTAL\n\nRESULTS ~ ** `{trt}`")
+    test_file = ocr_space_file(filename=downloaded_file_name, language=lang_code)
+    try:
+        ParsedText = test_file["ParsedResults"][0]["ParsedText"]
+        ProcessingTimeInMilliseconds = str(int(test_file["ProcessingTimeInMilliseconds"]) // 1000)
+    except Exception as e:
+        await event.edit("Errors.\n `{}`\nReport This to @UniBorg\n\n`{}`".format(str(e), json.dumps(test_file, sort_keys=True, indent=4)))
+    else:
+        await event.edit("Read Document in {} seconds. \n{}".format(ProcessingTimeInMilliseconds, ParsedText))
+    os.remove(downloaded_file_name)
+    await event.edit(ParsedText)

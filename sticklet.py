@@ -1,65 +1,78 @@
-# Ultroid - UserBot
-# Copyright (C) 2020 TeamUltroid
-#
-# This file is a part of < https://github.com/TeamUltroid/Ultroid/ >
-# PLease read the GNU Affero General Public License in
-# <https://www.github.com/TeamUltroid/Ultroid/blob/main/LICENSE/>.
-
-"""
-✘ Commands Available -
-
-• `{i}sticklet <text>`
-   `create random sticker with text.`
-"""
+# Random RGB Sticklet by @PhycoNinja13b
+# modified by @UniBorg
 
 import io
 import os
 import random
 import textwrap
-from glob import glob
 
 from PIL import Image, ImageDraw, ImageFont
-from telethon.errors.rpcerrorlist import BotMethodInvalidError
 from telethon.tl.types import InputMessagesFilterDocument
+from uniborg.util import admin_cmd
 
-from . import *
 
-
-@ultroid_cmd(pattern="sticklet (.*)")
+@borg.on(admin_cmd(pattern="srgb (.*)"))
 async def sticklet(event):
-    a = await event.eor(get_string("com_1"))
-    R = random.randint(0, 256)
-    G = random.randint(0, 256)
-    B = random.randint(0, 256)
+    R = random.randint(0,256)
+    G = random.randint(0,256)
+    B = random.randint(0,256)
+
+    # get the input text
+    # the text on which we would like to do the magic on
     sticktext = event.pattern_match.group(1)
-    if not sticktext:
-        return await event.eor("`Give me some Text`")
+
+    # delete the userbot command,
+    # i don't know why this is required
+    await event.delete()
+
+    # https://docs.python.org/3/library/textwrap.html#textwrap.wrap
     sticktext = textwrap.wrap(sticktext, width=10)
     # converts back the list to a string
-    sticktext = "\n".join(sticktext)
+    sticktext = '\n'.join(sticktext)
+
     image = Image.new("RGBA", (512, 512), (255, 255, 255, 0))
     draw = ImageDraw.Draw(image)
     fontsize = 230
-    font_file_ = glob("resources/fonts/*ttf")
-    FONT_FILE = random.choice(font_file_)
+
+    FONT_FILE = await get_font_file(event.client, "@FontRes")
+
     font = ImageFont.truetype(FONT_FILE, size=fontsize)
-    for i in range(10):
-        if not draw.multiline_textsize(sticktext, font=font) > (512, 512):
-            break
-        fontsize = 100
+
+    while draw.multiline_textsize(sticktext, font=font) > (512, 512):
+        fontsize -= 3
         font = ImageFont.truetype(FONT_FILE, size=fontsize)
+
     width, height = draw.multiline_textsize(sticktext, font=font)
-    draw.multiline_text(
-        ((512 - width) / 2, (512 - height) / 2), sticktext, font=font, fill=(R, G, B)
-    )
+    draw.multiline_text(((512-width)/2,(512-height)/2), sticktext, font=font, fill=(R, G, B))
+
     image_stream = io.BytesIO()
-    image_stream.name = check_filename("ult.webp")
+    image_stream.name = "@UniBorg.webp"
     image.save(image_stream, "WebP")
     image_stream.seek(0)
-    await a.delete()
-    await event.client.send_message(
-        event.chat_id,
-        "{}".format(sticktext),
-        file=image_stream,
-        reply_to=event.message.reply_to_msg_id,
+
+    # finally, reply the sticker
+    #await event.reply( file=image_stream, reply_to=event.message.reply_to_msg_id)
+    #replacing upper line with this to get reply tags
+
+    await event.client.send_file(event.chat_id, image_stream, reply_to=event.message.reply_to_msg_id)
+    # cleanup
+    try:
+        os.remove(FONT_FILE)
+    except:
+        pass
+
+
+async def get_font_file(client, channel_id):
+    # first get the font messages
+    font_file_message_s = await client.get_messages(
+        entity=channel_id,
+        filter=InputMessagesFilterDocument,
+        # this might cause FLOOD WAIT,
+        # if used too many times
+        limit=None
     )
+    # get a random font from the list of fonts
+    # https://docs.python.org/3/library/random.html#random.choice
+    font_file_message = random.choice(font_file_message_s)
+    # download and return the file path
+    return await client.download_media(font_file_message)
